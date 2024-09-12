@@ -1,0 +1,6 @@
+@PT_EDII_POS.API_HostAddress = http://localhost:5124
+
+GET {{PT_EDII_POS.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
