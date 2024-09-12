@@ -27,6 +27,7 @@ public static class ItemEndpoint
             .Produces<Item>(statusCode: StatusCodes.Status201Created);
 
         endpoints.MapPut("/{id:int}", UpdateItem)
+            .DisableAntiforgery()
             .ProducesProblem(400)
             .Produces<Item>();
 
@@ -65,7 +66,7 @@ public static class ItemEndpoint
         ItemServices services,
         ItemImageHelper imageHelper,
         int id,
-        UpdateItemCommand command,
+        [FromForm] UpdateItemCommand command,
         IValidator<UpdateItemCommand> validator)
     {
         var validationResult = await validator.ValidateAsync(command);

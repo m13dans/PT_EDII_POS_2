@@ -33,9 +33,13 @@ public class ItemRepository(AppDbContext dbContext) : IItemRepository
         if (item is null)
             return Error.NotFound("Item.NotFound");
 
-        Item newItem = ItemMapper.Map(itemUpdated);
+        item.NamaBarang = itemUpdated.NamaBarang;
+        item.Harga = itemUpdated.Harga;
+        item.StokAwal = itemUpdated.StokAwal;
+        item.Kategori = itemUpdated.Kategori;
+        item.UrlGambar = itemUpdated.HostUrlGambar;
 
-        var result = dbContext.Items.Update(newItem);
+        var result = dbContext.Items.Update(item);
         await SaveImage(itemUpdated.AbsoluteUrlGambar, itemUpdated.Gambar);
         await dbContext.SaveChangesAsync();
         return result.Entity;
