@@ -1,0 +1,100 @@
+@page "/register/"
+@inject HttpClient _http
+@inject NavigationManager _navigation
+
+<div class="ma-4 d-flex justify-content-center">
+  <MudChip T="string" Color="Color.Primary">
+    Register Form
+  </MudChip>
+</div>
+
+<MudGrid Justify="Justify.Center">
+  <MudItem xs="12" sm="7">
+    <MudPaper Class="pa-4">
+      <MudForm Model="@registerModel" Validation="@validationModel.ValidateValue" @ref="@form" @bind-IsValid="@success">
+        @if (!string.IsNullOrEmpty(apiErrorMessage))
+        {
+          <MudChip T="string" Color="Color.Error">
+            <p class="pt-3">@apiErrorMessage</p>
+          </MudChip>
+        }
+        <MudTextField @bind-Value="registerModel.Nama" For="@(() => registerModel.Nama)" Label="Nama" />
+        <MudTextField @bind-Value="registerModel.Email" For="@(() => registerModel.Email)" Label="Email" />
+        <MudTextField @bind-Value="registerModel.Password" For="@(() => registerModel.Password)" Label="Password"
+          HelperText="Masukan password yang kuat" @ref="pwField1" InputType="InputType.Password" />
+        <MudTextField T="string" Label="Password" HelperText="Ulangi Password" InputType="InputType.Password"
+          Validation="@(new Func<string, string?>(PasswordMatch))" />
+      </MudForm>
+    </MudPaper>
+    <MudPaper Class="d-flex pa-4 mt-4 justify-content-center">
+      @if (loading)
+      {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true"></MudProgressCircular>
+      }
+      else
+      {
+        <MudButton OnClick="@(RegisterAsync)" Variant="Variant.Filled" Color="Color.Primary" DropShadow="true">
+          Register</MudButton>
+      }
+      <MudButton Variant="Variant.Filled" Color="Color.Secondary" DropShadow="true" OnClick="@(()=>form!.ResetAsync())"
+        Class="mx-2">Reset</MudButton>
+    </MudPaper>
+  </MudItem>
+
+</MudGrid>
+
+
+@code {
+
+  bool loading = false;
+  RegisterModel registerModel = new();
+  RegisterValidator validationModel = new();
+  bool success;
+  MudTextField<string>? pwField1;
+  MudForm form;
+
+  string? apiErrorMessage;
+
+  private string? PasswordMatch(string arg)
+  {
+    if (pwField1 is null || pwField1.Value != arg)
+      return "Password tidak sama";
+    return null;
+  }
+
+  private async Task RegisterAsync()
+  {
+    await form.Validate();
+    if (form.IsValid)
+    {
+      var payload = JsonSerializer.Serialize(registerModel);
+      var requestContent = new StringContent(payload, Encoding.UTF8, "application/json");
+      loading = true;
+
+      try
+      {
+        var response = await _http.PostAsync("api/accounts/register", requestContent);
+        if (response.IsSuccessStatusCode)
+        {
+          _navigation.NavigateTo("/register-success");
+        }
+        else
+        {
+          var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
+          if (error is null)
+          {
+            apiErrorMessage = "Server sedang bermasalah mohon tunggu beberapa saat";
+            return;
+          }
+          apiErrorMessage = "Error Api : " + string.Join(",", error.Errors.SelectMany(x => x.Value));
+          loading = false;
+        }
+      }
+      catch
+      {
+        apiErrorMessage = "Server sedang bermasalah mohon coba beberapa saat";
+        loading = false;
+      }
+    }
+  }
+}

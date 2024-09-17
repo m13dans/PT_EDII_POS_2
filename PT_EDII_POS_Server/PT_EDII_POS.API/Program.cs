@@ -110,6 +110,15 @@ builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<TokenRepository>();
 
+builder.Services.AddCors(cors =>
+    cors.AddPolicy("BlazorCors", policy =>
+    {
+        policy.WithOrigins("http://localhost:5231")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    })
+);
+
 var app = builder.Build();
 
 app.ApplyMigration();
@@ -124,6 +133,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+app.UseCors("BlazorCors");
 app.UseAuthentication();
 app.UseAuthorization();
 
