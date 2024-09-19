@@ -1,0 +1,25 @@
+@page "/reports/"
+@inject IHttpClientFactory _http
+@inject NavigationManager _navigator
+@inject AuthenticationStateProvider _authStateProvider
+@attribute [Authorize]
+
+<MudDataGrid Items="@ReportModel">
+    <Columns>
+        <PropertyColumn Property="x => x.TanggalTransaksi" Title="Tanggal Transaksi" />
+        <PropertyColumn Property="x => string.Join(',', x.ItemId)" />
+        <PropertyColumn Property="x => string.Join(',', x.Kategori)" />
+        <PropertyColumn Property="x => x.TotalTransaksi" Title="Total Transaksi" />
+        <PropertyColumn Property="x => x.TotalHargaTransaksi" Title="Total Harga Transaksi" />
+    </Columns>
+</MudDataGrid>
+
+@code {
+
+    public IEnumerable<ReportModel> ReportModel { get; set; } = [];
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await _http.CreateClient("PosAPI").GetFromJsonAsync<List<ReportModel>>("/api/pos/reports");
+        ReportModel = result ?? [];
+    }
+}

@@ -1,9 +1,8 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
-using PT_EDII_POS.Application.Items;
-using PT_EDII_POS.Domain.Items;
 using static Microsoft.AspNetCore.Http.TypedResults;
-using PT_EDII_POS.Application.Account;
+using PT_EDII_POS.Application.Features.Items;
+using PT_EDII_POS.Application.Features.Account;
 
 namespace PT_EDII_POS.API.Features.Account;
 
@@ -14,11 +13,11 @@ public static class AccountEndpoint
         var endpoints = app.MapGroup("api/accounts").WithOpenApi().WithTags("Accounts");
 
         endpoints.MapPost("/register", Register)
-            .ProducesProblem(400)
+            .ProducesValidationProblem()
             .Produces(statusCode: StatusCodes.Status201Created);
 
         endpoints.MapPost("/login", Login)
-            .ProducesProblem(400)
+            .ProducesValidationProblem()
             .Produces<LoginUserResponse>();
 
         endpoints.MapPost("logout", Logout);
@@ -37,7 +36,8 @@ public static class AccountEndpoint
 
         return result.Match<IResult>(
             value => Ok("Account Created"),
-            error => Problem(detail: error.First().Code));
+            error => ValidationProblem(error.ToDictionary(x => x.Code,
+              y => error.Select(x => x.Description).ToArray())));
     }
 
     private static async Task<IResult> Login(
@@ -53,9 +53,11 @@ public static class AccountEndpoint
 
         return result.Match<IResult>(
             Ok,
-            error => Problem(statusCode: 400, detail: error.First().Description));
-    }
-    private static async Task<IResult> Logout(ItemServices services, int id)
+            error => ValidationProblem(error.ToDictionary(x => x.Code,
+              y => error.Select(x => x.Description).ToArray())));
+
+  }
+  private static async Task<IResult> Logout(ItemServices services, int id)
     {
         var result = await services.DeleteItem(id);
 

@@ -1,5 +1,4 @@
-using PT_EDII_POS.Application.Items;
-using PT_EDII_POS.Domain.Items;
+using PT_EDII_POS.Application.Features.Items;
 
 namespace PT_EDII_POS.API.Features.Items;
 
@@ -26,7 +25,7 @@ public class Helper
         UpdateItemCommand command,
         string urlGambar,
         string hostUrlGambar,
-        byte[] imageInBytes)
+        byte[]? imageInBytes)
     {
         return new ItemDTO()
         {
@@ -38,5 +37,18 @@ public class Helper
             HostUrlGambar = hostUrlGambar,
             AbsoluteUrlGambar = urlGambar
         };
+    }
+    public static ItemDTO MapItemWithoutImage(UpdateItemCommand command)
+    {
+        ItemDTO item = new()
+        {
+            NamaBarang = command.NamaBarang,
+            Harga = command.Harga,
+            StokAwal = command.StokAwal,
+            Kategori = command.Kategori,
+            HostUrlGambar = command.UrlGambar,
+        };
+
+        return item;
     }
 }

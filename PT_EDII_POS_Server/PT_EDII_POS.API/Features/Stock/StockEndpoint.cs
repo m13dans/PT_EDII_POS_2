@@ -1,4 +1,4 @@
-using PT_EDII_POS.Application.Stocks;
+using PT_EDII_POS.Application.Features.Stocks;
 using PT_EDII_POS.Domain.Transactions;
 using static Microsoft.AspNetCore.Http.TypedResults;
 

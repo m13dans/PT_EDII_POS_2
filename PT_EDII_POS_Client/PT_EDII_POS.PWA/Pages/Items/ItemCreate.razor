@@ -1,0 +1,106 @@
+﻿@page "/items/create/"
+@using System.Net
+@using System.Net.Http.Headers
+@inject NavigationManager _navigation
+@inject IHttpClientFactory _httpClient
+
+<div class="d-flex justify-content-center mt-4">
+
+	<EditForm Model="@ItemModel" OnValidSubmit="TambahItem" enctype="multipart/form-data" accept=".jpg">
+		<DataAnnotationsValidator />
+		<MudGrid>
+			<MudItem xs="12" sm="15">
+				<MudCard>
+					<MudCardContent>
+						<MudTextField Label="Nama Barang" @bind-Value="ItemModel.NamaBarang"
+							For="@(() => ItemModel.NamaBarang)" />
+						<MudTextField Label="Kategori" Class="mt-3" @bind-Value="ItemModel.Kategori"
+							For="@(() => ItemModel.Kategori)" />
+						<MudTextField Label="Stok awal" Class="mt-3" @bind-Value="ItemModel.StokAwal"
+							For="@(() => ItemModel.StokAwal)" />
+						<MudTextField Label="Harga" Class="mt-3" @bind-Value="ItemModel.Harga"
+							For="@(() => ItemModel.Harga)" />
+					</MudCardContent>
+					<MudCardActions>
+						<InputFile class="form-control" OnChange="@SetFile">
+						</InputFile>
+						@if (loading)
+						{
+							<MudProgressCircular Color="Color.Primary" Indeterminate="true"></MudProgressCircular>
+						}
+						else
+						{
+							<MudButton OnClick="@TambahItem" Variant="Variant.Filled" Color="Color.Primary" Class="ml-5">
+								Tambah</MudButton>
+						}
+					</MudCardActions>
+				</MudCard>
+			</MudItem>
+			<MudItem xs="12" sm="15">
+				<MudPaper Class="pa-4 mud-height-full">
+					<MudText Color="@Color.Error">
+						@apiErrorMessage
+					</MudText>
+				</MudPaper>
+			</MudItem>
+		</MudGrid>
+	</EditForm>
+
+</div>
+
+@code {
+	string? apiErrorMessage;
+	ItemValidator itemValidator = new();
+	public ItemModel ItemModel { get; set; } = new();
+	MudForm form;
+	bool loading = false;
+	bool success;
+	long maxFileSize = 5120000;
+	private void SetFile(InputFileChangeEventArgs e)
+	{
+		ItemModel.Gambar = e.File;
+	}
+
+	private async Task TambahItem()
+	{
+		try
+		{
+			using MultipartFormDataContent content = new();
+
+			content.Add(new StringContent(ItemModel.NamaBarang), "NamaBarang");
+			content.Add(new StringContent(ItemModel.Harga.ToString()), "Harga");
+			content.Add(new StringContent(ItemModel.Kategori), "Kategori");
+			content.Add(new StringContent(ItemModel.StokAwal.ToString()), "StokAwal");
+
+			var safeFileName = WebUtility.HtmlEncode(ItemModel.Gambar.Name);
+			var fileContent = new StreamContent(ItemModel.Gambar.OpenReadStream(maxFileSize));
+			fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse(ItemModel.Gambar.ContentType);
+			content.Add(fileContent, "Gambar", safeFileName);
+
+
+			var httpClient = _httpClient.CreateClient("PosAPI");
+			loading = true;
+			var response = await httpClient.PostAsync("api/items/", content);
+			if (response.IsSuccessStatusCode)
+			{
+				_navigation.NavigateTo("/items");
+			}
+			else
+			{
+				var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
+				if (error is null)
+				{
+					apiErrorMessage = "Server sedang bermasalah mohon tunggu beberapa saat";
+					return;
+				}
+				apiErrorMessage = "Error : " + string.Join(",", error.Errors.SelectMany(x => x.Value));
+				loading = false;
+			}
+		}
+		catch
+		{
+			apiErrorMessage = "Server sedang bermasalah mohon coba beberapa saat";
+			loading = false;
+		}
+	}
+}

@@ -1,4 +1,4 @@
-using PT_EDII_POS.Application.Reports;
+using PT_EDII_POS.Application.Features.Reports;
 using PT_EDII_POS.Domain.Reports;
 using static Microsoft.AspNetCore.Http.TypedResults;
 

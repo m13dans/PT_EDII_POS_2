@@ -1,5 +1,5 @@
 using FluentValidation;
-using static PT_EDII_POS.API.Features.Items.ImageValidatorHelper;
+using static PT_EDII_POS.Infrastructure.Features.Items.ImageHelper.ImageValidatorHelper;
 
 namespace PT_EDII_POS.API.Features.Items;
 

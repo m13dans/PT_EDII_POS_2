@@ -9,17 +9,18 @@ using PT_EDII_POS.API.Features.Account;
 using PT_EDII_POS.API.Features.Items;
 using PT_EDII_POS.API.Features.Reports;
 using PT_EDII_POS.API.Features.Transactions;
-using PT_EDII_POS.Application.Account;
-using PT_EDII_POS.Application.Items;
-using PT_EDII_POS.Application.Reports;
-using PT_EDII_POS.Application.Stocks;
-using PT_EDII_POS.Application.Transactions;
-using PT_EDII_POS.Infrastructure.Account;
+using PT_EDII_POS.Application.Features.Account;
+using PT_EDII_POS.Application.Features.Items;
+using PT_EDII_POS.Application.Features.Reports;
+using PT_EDII_POS.Application.Features.Stocks;
+using PT_EDII_POS.Application.Features.Transactions;
 using PT_EDII_POS.Infrastructure.DataContext;
-using PT_EDII_POS.Infrastructure.Reports;
-using PT_EDII_POS.Infrastructure.Repository.Items;
-using PT_EDII_POS.Infrastructure.Stocks;
-using PT_EDII_POS.Infrastructure.Transactions;
+using PT_EDII_POS.Infrastructure.Features.Account;
+using PT_EDII_POS.Infrastructure.Features.Items;
+using PT_EDII_POS.Infrastructure.Features.Items.ImageHelper;
+using PT_EDII_POS.Infrastructure.Features.Reports;
+using PT_EDII_POS.Infrastructure.Features.Stocks;
+using PT_EDII_POS.Infrastructure.Features.Transactions;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -76,6 +77,7 @@ builder.Services.AddAuthentication(o =>
     {
         ValidIssuer = config.GetValue<string>("JwtSettings:Issuer"),
         ValidAudience = config.GetValue<string>("JwtSettings:Audience"),
+        ValidAudiences = config.GetValue<string[]>("JwtSettings:Audiences"),
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.GetValue<string>("JwtSettings:SignKey")!)),
         ValidateIssuer = true,
         ValidateAudience = true,
@@ -113,7 +115,7 @@ builder.Services.AddScoped<TokenRepository>();
 builder.Services.AddCors(cors =>
     cors.AddPolicy("BlazorCors", policy =>
     {
-        policy.WithOrigins("http://localhost:5231")
+        policy.WithOrigins("http://localhost:5231", "https://localhost:7200")
               .AllowAnyHeader()
               .AllowAnyMethod();
     })

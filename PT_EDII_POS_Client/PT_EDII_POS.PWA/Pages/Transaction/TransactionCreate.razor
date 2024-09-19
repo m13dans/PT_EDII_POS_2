@@ -1,0 +1,90 @@
+﻿@page "/transactions/create/"
+@using System.Net
+@using System.Net.Http.Headers
+@inject NavigationManager _navigation
+@inject IHttpClientFactory _httpClient
+@attribute [Authorize]
+
+<div class="d-flex justify-content-center mt-4">
+
+	<EditForm Model="@Model" OnValidSubmit="BuatTransaksi">
+		<DataAnnotationsValidator />
+		<MudGrid>
+			<MudItem xs="12" sm="15">
+				<MudCard>
+					<MudCardContent>
+						<MudTextField Label="Id Item" @bind-Value="Model.ItemId" For="@(() => Model.ItemId)" />
+						<MudTextField Label="Jumlah Item" Class="mt-3" @bind-Value="Model.JumlahItem"
+							For="@(() => Model.JumlahItem)" />
+					</MudCardContent>
+					<MudCardActions>
+						@if (loading)
+						{
+							<MudProgressCircular Color="Color.Primary" Indeterminate="true"></MudProgressCircular>
+						}
+						else
+						{
+							<MudButton OnClick="@BuatTransaksi" Variant="Variant.Filled" Color="Color.Primary" Class="ml-5">
+								Tambah</MudButton>
+						}
+					</MudCardActions>
+				</MudCard>
+			</MudItem>
+			<MudItem xs="12" sm="15">
+				<MudPaper Class="pa-4 mud-height-full">
+					<MudText Color="@Color.Error">
+						@apiErrorMessage
+					</MudText>
+				</MudPaper>
+			</MudItem>
+		</MudGrid>
+	</EditForm>
+
+</div>
+
+@code {
+	string? apiErrorMessage;
+	public PostTransactionCommand Model { get; set; } = new();
+
+	public class PostTransactionCommand
+	{
+		public int ItemId { get; set; }
+		public int JumlahItem { get; set; }
+	}
+	MudForm form;
+	bool loading = false;
+
+	private async Task BuatTransaksi()
+	{
+		try
+		{
+			var httpClient = _httpClient.CreateClient("PosAPI");
+			var payload = JsonSerializer.Serialize(Model);
+			var requestContent = new StringContent(payload, Encoding.UTF8, "application/json");
+			loading = true;
+
+			var response = await httpClient.PostAsync("api/pos/transactions/", requestContent);
+			if (response.IsSuccessStatusCode)
+			{
+				_navigation.NavigateTo("/transactions");
+			}
+
+			var error = await response.Content.ReadFromJsonAsync<BadRequestResponse>();
+			apiErrorMessage = "Error : " + error.Detail;
+			loading = false;
+		}
+		catch
+		{
+			apiErrorMessage = "Server sedang bermasalah mohon coba beberapa saat";
+			loading = false;
+		}
+	}
+
+	public class BadRequestResponse
+	{
+		public string Type { get; set; } = string.Empty;
+		public string Title { get; set; } = string.Empty;
+		public int Status { get; set; }
+		public string Detail { get; set; } = string.Empty;
+	}
+}

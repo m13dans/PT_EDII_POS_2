@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using PT_EDII_POS.Application.Items;
+using PT_EDII_POS.Application.Features.Items;
 using PT_EDII_POS.Domain.Items;
+using PT_EDII_POS.Infrastructure.Features.Items.ImageHelper;
 using static Microsoft.AspNetCore.Http.TypedResults;
 
 namespace PT_EDII_POS.API.Features.Items;
@@ -20,6 +16,10 @@ public static class ItemEndpoint
 
         endpoints.MapGet("", GetItems)
             .Produces<List<Item>>();
+
+        endpoints.MapGet("{id:int}", GetItemById)
+            .ProducesProblem(404)
+            .Produces<Item>();
 
         endpoints.MapPost("", PostItems)
             .DisableAntiforgery()
@@ -40,6 +40,14 @@ public static class ItemEndpoint
     {
         var result = await services.GetItems();
         return Ok(result);
+    }
+    private static async Task<IResult> GetItemById(ItemServices services, int id)
+    {
+        var result = await services.GetItemById(id);
+        if (result.IsError)
+            return Problem(detail: result.FirstError.Description);
+
+        return Ok(result.Value);
     }
     private static async Task<IResult> PostItems(
         ItemServices services,
@@ -73,6 +81,14 @@ public static class ItemEndpoint
         if (!validationResult.IsValid)
             return ValidationProblem(validationResult.ToDictionary());
 
+        if (command.Gambar is null)
+        {
+            var itemWithoutImage = Helper.MapItemWithoutImage(command);
+            var resultItem = await services.UpdateItem(id, itemWithoutImage);
+            return resultItem.Match<IResult>(
+                Ok,
+                error => Problem(statusCode: StatusCodes.Status400BadRequest));
+        }
         var (urlGambar, hostUrlGambar, imageInByte) = imageHelper.HandleImage(command.Gambar);
 
         ItemDTO item = Helper.MapToItemDTO(command, urlGambar, hostUrlGambar, imageInByte);
@@ -82,6 +98,9 @@ public static class ItemEndpoint
             Ok,
             error => Problem(statusCode: StatusCodes.Status400BadRequest));
     }
+
+
+
     private static async Task<IResult> DeleteItem(ItemServices services, int id)
     {
         var result = await services.DeleteItem(id);

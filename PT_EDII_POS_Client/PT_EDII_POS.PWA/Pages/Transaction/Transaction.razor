@@ -1,0 +1,33 @@
+@page "/transactions/"
+@inject IHttpClientFactory _http
+@inject NavigationManager _navigator
+@inject AuthenticationStateProvider _authStateProvider
+@attribute [Authorize]
+
+<div class="mx-4 my-3">
+    <MudButton OnClick="@(() => _navigator.NavigateTo("/transactions/create"))">
+        <MudIcon Icon="@Icons.Material.Outlined.AddChart"></MudIcon>Buat Transaksi
+    </MudButton>
+</div>
+
+<MudDataGrid Items="@Models">
+    <Columns>
+        <PropertyColumn Property="x => x.Id" Title="Id" />
+        <PropertyColumn Property="x => x.ItemId" />
+        <PropertyColumn Property="x => x.JumlahItem" title="Jumlah Item" />
+        <PropertyColumn Property="x => x.Kategori" />
+        <PropertyColumn Property="x => x.Harga" />
+        <PropertyColumn Property="x => x.TotalHarga" Title="Total Harga" />
+        <PropertyColumn Property="x => x.TanggalTransaksi" Title="Tanggal Transaksi" />
+    </Columns>
+</MudDataGrid>
+
+@code {
+
+    public IEnumerable<TransactionModel> Models { get; set; } = [];
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await _http.CreateClient("PosAPI").GetFromJsonAsync<List<TransactionModel>>("/api/pos/transactions");
+        Models = result ?? [];
+    }
+}

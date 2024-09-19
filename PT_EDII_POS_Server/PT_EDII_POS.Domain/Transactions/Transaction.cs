@@ -1,5 +1,3 @@
-using PT_EDII_POS.Domain.Items;
-
 namespace PT_EDII_POS.Domain.Transactions;
 
 public class Transaction

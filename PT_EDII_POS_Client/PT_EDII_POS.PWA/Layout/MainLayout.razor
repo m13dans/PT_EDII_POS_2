@@ -6,26 +6,38 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar>
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
-            OnClick="@((e) => DrawerToggle())" />
-        <MudLink Color="Color.Inherit" Underline="Underline.None" Href="/">Point Of Sales</MudLink>
-        <MudSpacer />
-        <MudLink Color="Color.Inherit" Underline="Underline.None" Href="/register">Register</MudLink>
-    </MudAppBar>
-    <MudDrawer @bind-Open="@_drawerOpen">
-        <NavMenu />
-    </MudDrawer>
-    <MudMainContent>
-        @Body
-    </MudMainContent>
+	<MudAppBar>
+		<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+			OnClick="@((e) => DrawerToggle())" />
+		<MudLink Color="Color.Inherit" Underline="Underline.None" Href="/">Point Of Sales</MudLink>
+		<MudSpacer />
+		<AuthorizeView>
+			<Authorized>
+				<span>@GetUserNameClaim(context.User.Claims)</span>
+				<MudLink Class="mx-3" Color="Color.Inherit" Underline="Underline.None" Href="/logout">Logout</MudLink>
+			</Authorized>
+			<NotAuthorized>
+				<MudLink Class="mx-3" Color="Color.Inherit" Underline="Underline.None" Href="/login">Login</MudLink>
+				<MudLink Color="Color.Inherit" Underline="Underline.None" Href="/register">Register</MudLink>
+			</NotAuthorized>
+		</AuthorizeView>
+	</MudAppBar>
+	<MudDrawer @bind-Open="@_drawerOpen">
+		<NavMenu />
+	</MudDrawer>
+	<MudMainContent>
+		@Body
+	</MudMainContent>
 </MudLayout>
 
 @code {
-    bool _drawerOpen = true;
+	bool _drawerOpen = false;
 
-    void DrawerToggle()
-    {
-        _drawerOpen = !_drawerOpen;
-    }
+	private string GetUserNameClaim(IEnumerable<Claim> claims) =>
+	claims.FirstOrDefault(c => c.Type.ToLower() is "name")?.Value ?? "";
+
+	void DrawerToggle()
+	{
+		_drawerOpen = !_drawerOpen;
+	}
 }

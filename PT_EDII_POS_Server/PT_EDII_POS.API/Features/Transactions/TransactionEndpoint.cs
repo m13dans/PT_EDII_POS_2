@@ -1,6 +1,6 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
-using PT_EDII_POS.Application.Transactions;
+using PT_EDII_POS.Application.Features.Transactions;
 using PT_EDII_POS.Domain.Transactions;
 using static Microsoft.AspNetCore.Http.TypedResults;
 

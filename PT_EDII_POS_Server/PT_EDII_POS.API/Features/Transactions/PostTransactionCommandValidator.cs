@@ -1,5 +1,5 @@
 using FluentValidation;
-using PT_EDII_POS.Application.Transactions;
+using PT_EDII_POS.Application.Features.Transactions;
 
 namespace PT_EDII_POS.API.Features.Transactions;
 
